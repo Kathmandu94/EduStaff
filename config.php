@@ -1,11 +1,14 @@
 <?php
 session_start();
 
-// Database configuration
-$host = 'localhost';
-$username = 'root';
-$password = ''; // Default XAMPP password
-$database = 'edustaff_db';
+// ─── InfinityFree Database Configuration ───────────────────────────────────
+// Find these values in your InfinityFree Control Panel → MySQL Databases
+// ⚠️  Do NOT use 'localhost' — InfinityFree requires the exact host below.
+$host     = 'sql312.infinityfree.com'; // InfinityFree MySQL host
+$username = 'if0_43074420';            // MySQL username
+$password = 'GamerNujal4422';          // MySQL password
+$database = 'if0_43074420_edustaff_db'; // Database name
+// ───────────────────────────────────────────────────────────────────────────
 
 // Create connection
 $conn = new mysqli($host, $username, $password, $database);
