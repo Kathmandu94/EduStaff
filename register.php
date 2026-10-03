@@ -165,37 +165,90 @@ include 'header.php';
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-    function parseJwt (token) {
+    function parseJwt(token) {
         try {
             var base64Url = token.split('.')[1];
-            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        } catch(e) {
-            return null;
+            var base64    = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var json      = decodeURIComponent(
+                window.atob(base64).split('').map(c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join('')
+            );
+            return JSON.parse(json);
+        } catch(e) { return null; }
+    }
+
+    function showGoogleToast(name) {
+        // Remove any existing toast
+        const old = document.getElementById('gToast');
+        if (old) old.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'gToast';
+        toast.innerHTML = `
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+                <div style="background:rgba(255,255,255,0.25);padding:0.45rem;border-radius:50%;display:flex;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:0.95rem;">Google verified</div>
+                    <div style="font-size:0.8rem;opacity:0.9;">Hi ${name}! Complete your password below.</div>
+                </div>
+            </div>`;
+        Object.assign(toast.style, {
+            position:'fixed', top:'20px', right:'20px',
+            background:'#10B981', color:'white',
+            padding:'0.9rem 1.25rem', borderRadius:'12px',
+            boxShadow:'0 10px 25px -5px rgba(16,185,129,0.4)',
+            zIndex:'9999', maxWidth:'320px',
+            animation:'slideInRight 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards'
+        });
+
+        if (!document.getElementById('gToastStyle')) {
+            const s = document.createElement('style');
+            s.id = 'gToastStyle';
+            s.textContent = `
+                @keyframes slideInRight {
+                    from { transform: translateX(120%); opacity: 0; }
+                    to   { transform: translateX(0);    opacity: 1; }
+                }
+                @keyframes slideOutRight {
+                    from { transform: translateX(0);    opacity: 1; }
+                    to   { transform: translateX(120%); opacity: 0; }
+                }`;
+            document.head.appendChild(s);
         }
+
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.4s ease forwards';
+            setTimeout(() => toast.remove(), 400);
+        }, 4000);
     }
 
     function handleGoogleSignUp(response) {
         const data = parseJwt(response.credential);
-        if(data && data.email) {
-            // Fill in the email field
-            const emailInput = document.getElementById('email');
-            emailInput.value = data.email;
-            
-            // Generate a suggested username from the email handle
+        if (data && data.email) {
+            const emailInput    = document.getElementById('email');
             const usernameInput = document.getElementById('username');
-            if(!usernameInput.value) {
-                usernameInput.value = data.email.split('@')[0] + Math.floor(Math.random() * 100);
-            }
-            
-            // Visually indicate that the email was captured successfully
+
+            // Pre-fill email
+            emailInput.value = data.email;
             emailInput.style.backgroundColor = '#ecfdf5';
-            emailInput.style.borderColor = '#10b981';
-            
-            alert('Google authentication successful! Please complete your username and strong password below to finish registration.');
+            emailInput.style.borderColor      = '#10b981';
+
+            // Suggest username from Google name or email handle
+            if (!usernameInput.value) {
+                const base = data.name
+                    ? data.name.toLowerCase().replace(/\s+/g, '_')
+                    : data.email.split('@')[0];
+                usernameInput.value = base + Math.floor(Math.random() * 100);
+            }
+
+            // Focus password field next
+            document.getElementById('password').focus();
+
+            showGoogleToast(data.given_name || data.email.split('@')[0]);
         }
     }
 </script>

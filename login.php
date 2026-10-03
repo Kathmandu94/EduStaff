@@ -18,50 +18,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['google_credential'])) {
         $credential = $_POST['google_credential'];
         $google_client_id = '518752792189-15frprgg9bf9afe1f7vm3dhtk15bo7tk.apps.googleusercontent.com';
-        
-        $email = null;
-        
-        // Verify token with Google's API endpoint
-        $verify_url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($credential);
-        $response = @file_get_contents($verify_url);
-        
-        if ($response !== false) {
-            $payload = json_decode($response, true);
-            if (!empty($payload['email']) && isset($payload['aud']) && $payload['aud'] === $google_client_id) {
-                $email = $payload['email'];
-            }
-        } else {
-            // Fallback decode JWT payload if direct HTTP request is blocked
-            $parts = explode('.', $credential);
-            if (count($parts) === 3) {
-                $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
-                if (!empty($payload['email'])) {
+
+        $email   = null;
+        $payload = null;
+
+        // ── Step 1: Try cURL (works on InfinityFree; file_get_contents is blocked) ──
+        if (function_exists('curl_init')) {
+            $verify_url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($credential);
+            $ch = curl_init($verify_url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+            ]);
+            $response  = curl_exec($ch);
+            $curl_err  = curl_errno($ch);
+            curl_close($ch);
+
+            if (!$curl_err && $response !== false) {
+                $payload = json_decode($response, true);
+                // Google may return aud as a string or an array
+                $aud_match = isset($payload['aud']) &&
+                    (
+                        $payload['aud'] === $google_client_id ||
+                        (is_array($payload['aud']) && in_array($google_client_id, $payload['aud']))
+                    );
+                if (!empty($payload['email']) && $aud_match) {
                     $email = $payload['email'];
+                } else {
+                    $payload = null; // invalid — fall through to JWT decode
                 }
             }
         }
-        
+
+        // ── Step 2: Fallback — decode JWT locally (no outbound request needed) ──
+        if (!$email) {
+            $parts = explode('.', $credential);
+            if (count($parts) === 3) {
+                $padded  = str_replace(['-', '_'], ['+', '/'], $parts[1]);
+                $padded .= str_repeat('=', (4 - strlen($padded) % 4) % 4);
+                $payload = json_decode(base64_decode($padded), true);
+
+                if (!empty($payload['email']) && isset($payload['aud'])) {
+                    $aud_ok = $payload['aud'] === $google_client_id ||
+                              (is_array($payload['aud']) && in_array($google_client_id, $payload['aud']));
+                    // Also check token expiry
+                    $not_expired = isset($payload['exp']) && $payload['exp'] > time();
+                    if ($aud_ok && $not_expired) {
+                        $email = $payload['email'];
+                    }
+                }
+            }
+        }
+
         if ($email) {
             // Check if user exists in database
             $stmt = $conn->prepare("SELECT id, username, role FROM users WHERE email = ?");
             $stmt->bind_param("s", $email);
             $stmt->execute();
             $result = $stmt->get_result();
-            
+
             if ($user = $result->fetch_assoc()) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role'];
+                $_SESSION['user_id']       = $user['id'];
+                $_SESSION['username']      = $user['username'];
+                $_SESSION['role']          = $user['role'];
                 $_SESSION['login_success'] = true;
-                
+
                 header('Location: index.php');
                 exit;
             } else {
-                $error = "No EduStaff account found for " . htmlspecialchars($email) . ". Please register first below!";
+                $error = "No EduStaff account found for " . htmlspecialchars($email) . ". Please register first!";
             }
             $stmt->close();
         } else {
-            $error = "Google Sign-In failed or token is invalid.";
+            $error = "Google Sign-In failed. Please try again or use username/password.";
         }
     } 
     // 2. Standard Username/Password Logic
