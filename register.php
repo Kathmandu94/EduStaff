@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
-    $role = $_POST['role'] ?? 'accountant';
+    $role = 'admin'; // Hardcoded to admin per project requirements
     
     // 1. Check for empty fields
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
@@ -41,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = 'Username or Email is already registered.';
         } else {
             // Hash password and register new user
-            $stmt->close();
             
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
             
@@ -56,9 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $insert_stmt->close();
         }
         
-        if (isset($stmt) && $stmt instanceof mysqli_stmt) {
-            $stmt->close();
-        }
+        $stmt->close();
     }
 }
 
@@ -91,9 +88,8 @@ include 'header.php';
         <?php else: ?>
 
         <!-- Google Registration Button -->
-        <!-- NOTE: Replace YOUR_GOOGLE_CLIENT_ID with your actual client ID from Google Cloud Console -->
         <div id="g_id_onload"
-             data-client_id="YOUR_GOOGLE_CLIENT_ID"
+             data-client_id="518752792189-15frprgg9bf9afe1f7vm3dhtk15bo7tk.apps.googleusercontent.com"
              data-context="signup"
              data-ux_mode="popup"
              data-callback="handleGoogleSignUp"
@@ -132,17 +128,6 @@ include 'header.php';
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="role">User Role</label>
-                <div style="position: relative;">
-                    <i class="fa-solid fa-user-tag" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                    <select id="role" name="role" class="form-control" style="padding-left: 2.75rem; appearance: none; background-color: #fff;" required>
-                        <option value="accountant" <?php echo (($_POST['role']??'') == 'accountant') ? 'selected' : ''; ?>>Accountant</option>
-                        <option value="admin" <?php echo (($_POST['role']??'') == 'admin') ? 'selected' : ''; ?>>Administrator</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"></i>
-                </div>
-            </div>
 
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>

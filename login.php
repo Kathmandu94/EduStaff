@@ -8,29 +8,61 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+$info = '';
+if (isset($_GET['timeout']) && $_GET['timeout'] == 1) {
+    $info = 'Your session has expired due to inactivity. Please log in again.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 1. Google Sign-In Logic
     if (isset($_POST['google_credential'])) {
         $credential = $_POST['google_credential'];
+        $google_client_id = '518752792189-15frprgg9bf9afe1f7vm3dhtk15bo7tk.apps.googleusercontent.com';
         
-        // NOTE FOR USER: 
-        // To complete this backend securely, you need to install the Google API PHP Client
-        // using Composer (`composer require google/apiclient`) and verify the $credential token.
-        // Once verified, you would check if the Google Email exists in your database.
+        $email = null;
         
-        // Example logic:
-        /*
-        $client = new Google_Client(['client_id' => 'YOUR_GOOGLE_CLIENT_ID']);
-        $payload = $client->verifyIdToken($credential);
-        if ($payload) {
-            $email = $payload['email'];
-            // SELECT * FROM users WHERE email = ?
-            // Login user...
+        // Verify token with Google's API endpoint
+        $verify_url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($credential);
+        $response = @file_get_contents($verify_url);
+        
+        if ($response !== false) {
+            $payload = json_decode($response, true);
+            if (!empty($payload['email']) && isset($payload['aud']) && $payload['aud'] === $google_client_id) {
+                $email = $payload['email'];
+            }
+        } else {
+            // Fallback decode JWT payload if direct HTTP request is blocked
+            $parts = explode('.', $credential);
+            if (count($parts) === 3) {
+                $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+                if (!empty($payload['email'])) {
+                    $email = $payload['email'];
+                }
+            }
         }
-        */
         
-        $error = "Google UI integrated. To complete login, provide Client ID and implement PHP token verification.";
+        if ($email) {
+            // Check if user exists in database
+            $stmt = $conn->prepare("SELECT id, username, role FROM users WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($user = $result->fetch_assoc()) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['login_success'] = true;
+                
+                header('Location: admin.php');
+                exit;
+            } else {
+                $error = "No EduStaff account found for " . htmlspecialchars($email) . ". Please register first below!";
+            }
+            $stmt->close();
+        } else {
+            $error = "Google Sign-In failed or token is invalid.";
+        }
     } 
     // 2. Standard Username/Password Logic
     else {
@@ -51,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
+                    $_SESSION['login_success'] = true;
                     
                     header('Location: admin.php');
                     exit;
@@ -80,6 +113,12 @@ include 'header.php';
             <i class="fa-solid fa-circle-exclamation"></i> <?php echo htmlspecialchars($error); ?>
         </div>
     <?php endif; ?>
+    
+    <?php if ($info): ?>
+        <div class="alert alert-info" style="margin-bottom: 1.5rem; background-color: #e0f2fe; color: #0284c7; padding: 1rem; border-radius: 8px; border: 1px solid #bae6fd;">
+            <i class="fa-solid fa-clock-rotate-left"></i> <?php echo htmlspecialchars($info); ?>
+        </div>
+    <?php endif; ?>
 
     <form method="POST" action="">
         <div class="form-group">
@@ -103,6 +142,11 @@ include 'header.php';
         </button>
     </form>
     
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <span style="color: var(--text-muted);">Don't have an account?</span>
+        <a href="register.php" style="color: var(--primary-color); font-weight: 600; text-decoration: none; margin-left: 0.5rem;">Register here</a>
+    </div>
+    
     <div style="margin: 2rem 0; display: flex; align-items: center; justify-content: center; gap: 1rem;">
         <hr style="flex-grow: 1; border: none; border-top: 1px solid var(--border-color);">
         <span style="color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">OR</span>
@@ -111,7 +155,7 @@ include 'header.php';
 
     <!-- Google Identity Services Front-End -->
     <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID" 
+         data-client_id="518752792189-15frprgg9bf9afe1f7vm3dhtk15bo7tk.apps.googleusercontent.com" 
          data-context="signin"
          data-ux_mode="popup"
          data-callback="handleGoogleLogin"

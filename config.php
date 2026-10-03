@@ -25,5 +25,15 @@ function checkLogin() {
         header('Location: login.php');
         exit;
     }
+    
+    // Session timeout after 5 minutes (300 seconds)
+    $timeout_duration = 300;
+    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
+        session_unset();
+        session_destroy();
+        header('Location: login.php?timeout=1');
+        exit;
+    }
+    $_SESSION['last_activity'] = time();
 }
 ?>

@@ -31,10 +31,48 @@ $stmt->close();
 include 'header.php';
 ?>
 
-<div class="dashboard-header" style="margin-bottom: 2rem;">
-    <h1 style="color: var(--text-main); font-size: 1.75rem; font-weight: 700;">Admin Dashboard</h1>
-    <p style="color: var(--text-muted);">Overview of your institution's staff and payroll.</p>
+<?php if (isset($_SESSION['login_success'])): ?>
+<div id="authPopup" style="position: fixed; top: 20px; right: 20px; background: #10B981; color: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); z-index: 9999; display: flex; align-items: center; gap: 1rem; font-weight: 500; animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease-in 3.5s forwards;">
+    <div style="background: rgba(255,255,255,0.2); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-check" style="font-size: 1.25rem;"></i>
+    </div>
+    <div>
+        <div style="font-size: 1.1rem; font-weight: 600;">Authorized Successfully</div>
+        <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.2rem;">Welcome to your dashboard</div>
+    </div>
 </div>
+<style>
+    @keyframes slideInRight {
+        0% { transform: translateX(120%); opacity: 0; }
+        100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; visibility: visible; transform: translateX(0); }
+        100% { opacity: 0; visibility: hidden; transform: translateX(120%); }
+    }
+</style>
+<?php 
+    unset($_SESSION['login_success']);
+endif; 
+?>
+
+<div class="dashboard-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <h1 style="color: var(--text-main); font-size: 1.75rem; font-weight: 700;">Admin Dashboard</h1>
+        <span style="background: rgba(16, 185, 129, 0.1); color: #10B981; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border: 1px solid rgba(16,185,129,0.2);">
+            <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); animation: pulse 2s infinite;"></span>
+            Logged In
+        </span>
+    </div>
+    <p style="color: var(--text-muted); margin-top: 0.5rem;">Overview of your institution's staff and payroll.</p>
+</div>
+<style>
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
 
 <!-- Metrics Cards -->
 <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
