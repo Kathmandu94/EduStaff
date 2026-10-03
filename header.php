@@ -28,10 +28,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <h2>EduStaff</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="admin.php" class="nav-item <?php echo $current_page == 'admin.php' ? 'active' : ''; ?>"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="index.php" class="nav-item <?php echo $current_page == 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
                 <a href="teachers.php" class="nav-item <?php echo $current_page == 'teachers.php' ? 'active' : ''; ?>"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a>
                 <a href="attendance.php" class="nav-item <?php echo $current_page == 'attendance.php' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
-                <a href="salary.php" class="nav-item <?php echo $current_page == 'salary.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-invoice-dollar"></i> Payroll</a>
+                <a href="payroll.php" class="nav-item <?php echo $current_page == 'payroll.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-invoice-dollar"></i> Payroll</a>
             </nav>
             <div class="sidebar-footer">
                 <a href="logout.php" class="nav-item text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>

@@ -3,7 +3,7 @@ require_once 'config.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    header('Location: admin.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['login_success'] = true;
                 
-                header('Location: admin.php');
+                header('Location: index.php');
                 exit;
             } else {
                 $error = "No EduStaff account found for " . htmlspecialchars($email) . ". Please register first below!";
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['role'] = $user['role'];
                     $_SESSION['login_success'] = true;
                     
-                    header('Location: admin.php');
+                    header('Location: index.php');
                     exit;
                 } else {
                     $error = 'Invalid credentials.';

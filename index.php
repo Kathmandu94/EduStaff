@@ -117,7 +117,7 @@ endif;
         </div>
         <div>
             <h3 style="color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">Est. Monthly Payroll</h3>
-            <p style="color: var(--text-main); font-size: 1.5rem; font-weight: 700;">$<?php echo number_format($total_payroll, 2); ?></p>
+            <p style="color: var(--text-main); font-size: 1.5rem; font-weight: 700;">रू <?php echo number_format($total_payroll, 0); ?></p>
         </div>
     </div>
     
@@ -202,11 +202,11 @@ endif;
             <a href="teachers.php" class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-align: left; display: flex; align-items: center; gap: 1rem; transition: var(--transition);">
                 <i class="fa-solid fa-user-plus" style="color: var(--primary-color); font-size: 1.25rem; width: 24px; text-align: center;"></i> Add New Teacher
             </a>
-            <a href="salary.php" class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-align: left; display: flex; align-items: center; gap: 1rem; transition: var(--transition);">
-                <i class="fa-solid fa-file-invoice-dollar" style="color: var(--secondary-color); font-size: 1.25rem; width: 24px; text-align: center;"></i> Generate Payroll
+            <a href="payroll.php" class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-align: left; display: flex; align-items: center; gap: 1rem; transition: var(--transition);">
+                <i class="fa-solid fa-file-invoice-dollar" style="color: var(--secondary-color); font-size: 1.25rem; width: 24px; text-align: center;"></i> View Payroll
             </a>
-            <a href="payslip.php" class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-align: left; display: flex; align-items: center; gap: 1rem; transition: var(--transition);">
-                <i class="fa-solid fa-print" style="color: var(--text-muted); font-size: 1.25rem; width: 24px; text-align: center;"></i> Print Payslips
+            <a href="attendance.php" class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-align: left; display: flex; align-items: center; gap: 1rem; transition: var(--transition);">
+                <i class="fa-solid fa-calendar-check" style="color: var(--text-muted); font-size: 1.25rem; width: 24px; text-align: center;"></i> Mark Attendance
             </a>
         </div>
     </div>
